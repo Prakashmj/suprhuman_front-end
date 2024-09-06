@@ -5,9 +5,9 @@ import Footer from "./footer";
 import FirstFifty from "./first-fifty";
 
 export default function Home() {
+  const router = useRouter();
+
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
-  const [coinPosition, setCoinPosition] = useState(null);
-  const [coins, setCoins] = useState(0);
   const [characterImage, setCharacterImage] = useState("/avatar1.png");
   const [energy, setEnergy] = useState({ current: 0, max: 1000 });
   const [timer, setTimer] = useState("00:00:00");
@@ -16,6 +16,7 @@ export default function Home() {
   const [isFirstFiftyOpen, setIsFirstFiftyOpen] = useState(false);
   const [isEnergyIncreasing, setIsEnergyIncreasing] = useState(false);
   const [previousEnergy, setPreviousEnergy] = useState(0);
+  const [coins, setCoins] = useState([]);
 
   const toggleSettingsModal = () => {
     setIsSettingsOpen((prev) => !prev);
@@ -29,9 +30,17 @@ export default function Home() {
     if (isOnAvatar || isOnBackground) {
       const x = e.clientX;
       const y = e.clientY;
-      setCoinPosition({ x, y });
 
-      setTimeout(() => setCoinPosition(null), 1000);
+      // Add a new coin to the array with a unique ID and initial position
+      setCoins((prevCoins) => [
+        ...prevCoins,
+        { id: Date.now(), x, y },
+      ]);
+
+      // Remove the coin after 1 second
+      setTimeout(() => {
+        setCoins((prevCoins) => prevCoins.filter((coin) => coin.id !== Date.now()));
+      }, 1000);
     }
   };
 
@@ -287,7 +296,7 @@ export default function Home() {
           <div className={styles.boostTextContainer}>
             <p className={styles.boostLabel}>BOOST</p>
           </div>
-          <div className={styles.boostIconContainer}>
+          <div className={styles.boostIconContainer} onClick={() => router.push('boost')}>
             <img src="/boost.png" alt="Boost" className={styles.boostIcon} />
           </div>
         </div>
@@ -386,8 +395,11 @@ export default function Home() {
                   className={styles.inputField}
                 />
 
-                <button type="submit" className={styles.submitButton}>
-                  SUBMIT
+                <button type="button" className={styles.actionButton1}>
+                  CONNECT WALLET
+                </button>
+                <button type="button" className={styles.actionButton2} onClick={() => router.push('chooseCharacter')}>
+                  CHANGE CHARACTER
                 </button>
               </form>
             </div>
@@ -398,14 +410,16 @@ export default function Home() {
         <FirstFifty onClose={() => setIsFirstFiftyOpen(false)} />
       )}
 
-      {coinPosition && (
+      {coins.map((coin) => (
         <img
+          key={coin.id}
           src="/coins-per-min.png"
           alt="Coin per Tap"
           className={styles.coinPerTap}
-          style={{ top: coinPosition.y, left: coinPosition.x }}
+          style={{ top: coin.y, left: coin.x }}
         />
-      )}
+      ))}
+      
     </div>
   );
 }
